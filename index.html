@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayXpress – Barcode Scanner</title>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:600,400|Roboto+Slab:700,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- LOGIN FORM -->
+  <div id="login-container">
+    <div class="logo-block">
+      <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
+      <div class="caption">
+        <h1>PayXpress</h1>
+        <div class="tagline">Scan & Pay</div>
+      </div>
+    </div>
+    <h2>Login to PayXpress</h2>
+    <form id="login-form">
+      <select id="role">
+        <option value="user">User</option>
+        <option value="owner">Owner/Officer</option>
+      </select>
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <label style="display:block;text-align:left;margin-top:5px;font-size:0.96em;">
+        <input type="checkbox" id="show-password"> Show Password
+      </label>
+      <button type="submit" id="login-btn">Login</button>
+      <button type="button" id="open-signup-btn" style="margin-top:12px;">Sign Up</button>
+      <p id="login-error" style="color: #c01f1f; display: none"></p>
+    </form>
+  </div>
+  <!-- Sign Up Modal -->
+  <div id="signup-modal" style="display:none;">
+    <div id="signup-box">
+      <h2>Sign Up</h2>
+      <form id="signup-form">
+        <select id="signup-role">
+          <option value="user">User</option>
+          <option value="owner">Owner/Officer</option>
+        </select>
+        <input type="text" id="signup-username" placeholder="New Username" required>
+        <input type="password" id="signup-password" placeholder="New Password" required>
+        <label style="display:block;text-align:left;margin-top:5px;font-size:0.96em;">
+          <input type="checkbox" id="signup-show-password"> Show Password
+        </label>
+        <button type="submit" id="signup-btn">Register</button>
+        <button type="button" id="close-signup-btn" style="margin-top:8px;">Cancel</button>
+        <p id="signup-error" style="color: #c01f1f; display:none;"></p>
+        <p id="signup-success" style="color:#15ad43;display:none;"></p>
+      </form>
+    </div>
+  </div>
+  <!-- USER SECTION -->
+  <div id="user-app" style="display:none">
+    <header class="app-header">
+      <div class="logo-block">
+        <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
+        <div class="caption">
+          <h1>PayXpress</h1>
+          <div class="tagline">Scan & Pay</div>
+        </div>
+      </div>
+      <button id="logout-btn" class="logout-btn">Logout</button>
+    </header>
+    <main>
+      <div class="main-flex">
+        <section class="scanner-side">
+          <video id="camera-user" autoplay></video>
+          <div id="output-user">Scanned Code: <span id="code-user">None</span></div>
+          <button id="add-another-btn-user" style="display:none">Add Another Product</button>
+          <button id="pay-bill-btn" style="margin-top:18px;">Pay Bill</button>
+        </section>
+        <aside class="details-side">
+          <div id="product-user"></div>
+          <div id="product-list-user" class="product-list"></div>
+          <div id="total-bill" style="font-weight:bold;color:#8d6558;margin-top:10px;"></div>
+        </aside>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 PayXpress. All rights reserved.</p>
+    </footer>
+  </div>
+  <!-- OWNER SECTION -->
+  <div id="owner-app" style="display:none">
+    <header class="app-header">
+      <div class="logo-block">
+        <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
+        <div class="caption">
+          <h1>PayXpress (Owner)</h1>
+          <div class="tagline">Add Product Details & Offers</div>
+        </div>
+      </div>
+      <button id="logout-btn" class="logout-btn">Logout</button>
+    </header>
+    <main>
+      <div class="main-flex">
+        <section class="scanner-side">
+          <video id="camera-owner" autoplay></video>
+          <div id="output-owner">Scanned Code: <span id="code-owner">None</span></div>
+          <form id="add-details-form" style="display:none; margin-top:15px;">
+            <input type="number" id="actual-price" placeholder="Actual Price" min="0" step="0.01" required>
+            <input type="number" id="discount-price" placeholder="Discounted Price" min="0" step="0.01" required>
+            <button type="submit">Save Product Details</button>
+          </form>
+          <button id="add-another-btn-owner" style="display:none">Add Another Product</button>
+        </section>
+        <aside class="details-side">
+          <div id="product-owner"></div>
+          <div id="product-list-owner" class="product-list"></div>
+        </aside>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 PayXpress. All rights reserved.</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+
