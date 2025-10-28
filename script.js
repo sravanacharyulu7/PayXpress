@@ -1,40 +1,64 @@
-// --- CREDENTIAL STORE FOR DEMO ---
-let userCredentials = { user: { username: "user", password: "payxpress" } };
-let ownerCredentials = { owner: { username: "owner", password: "payxpress" } };
+// --- Credential System ---
+let userCredentials = {};
+let ownerCredentials = {};
+if (localStorage.getItem("userCredentials")) {
+  userCredentials = JSON.parse(localStorage.getItem("userCredentials"));
+} else {
+  // Initialize with a default user for testing
+  userCredentials["user"] = { username: "user", password: "payxpress" };
+}
+if (localStorage.getItem("ownerCredentials")) {
+  ownerCredentials = JSON.parse(localStorage.getItem("ownerCredentials"));
+} else {
+  // Initialize with a default owner for testing
+  ownerCredentials["owner"] = { username: "owner", password: "payxpress" };
+}
+function saveCredentialsToLocal() {
+  localStorage.setItem("userCredentials", JSON.stringify(userCredentials));
+  localStorage.setItem("ownerCredentials", JSON.stringify(ownerCredentials));
+}
 
-// --- LOGIN HANDLING ---
+// --- Login Form Logic ---
 const loginForm = document.getElementById("login-form");
 const roleSelect = document.getElementById("role");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
-const showPassword = document.getElementById("show-password");
 const loginErrorMsg = document.getElementById("login-error");
 const loginContainer = document.getElementById("login-container");
 const userApp = document.getElementById("user-app");
 const ownerApp = document.getElementById("owner-app");
 
-// Show Password
-showPassword.addEventListener("change", () => {
-  passwordInput.type = showPassword.checked ? "text" : "password";
+// Show/hide password with eye icon
+const loginEye = document.getElementById("toggle-login-eye");
+loginEye.addEventListener("click", function () {
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    loginEye.classList.add("active");
+  } else {
+    passwordInput.type = "password";
+    loginEye.classList.remove("active");
+  }
 });
 
 loginForm.addEventListener("submit", function(e) {
   e.preventDefault();
   const role = roleSelect.value;
   const username = usernameInput.value.trim();
-  const password = passwordInput.value;
+  const password = passwordInput.value.trim();
   let valid = false;
 
   if (role === "user" && userCredentials[username] && userCredentials[username].password === password) {
     valid = true;
     loginContainer.style.display = "none";
     userApp.style.display = "block";
-    startBarcodeAppUser();
+    ownerApp.style.display = "none";
+    startBarcodeAppUser(); // // Start camera on successful User login
   } else if (role === "owner" && ownerCredentials[username] && ownerCredentials[username].password === password) {
     valid = true;
     loginContainer.style.display = "none";
     ownerApp.style.display = "block";
-    startBarcodeAppOwner();
+    userApp.style.display = "none";
+    startBarcodeAppOwner(); // // Start camera on successful Owner login
   }
   if (!valid) {
     loginErrorMsg.textContent = "Invalid username or password!";
@@ -42,7 +66,7 @@ loginForm.addEventListener("submit", function(e) {
   }
 });
 
-// --- SIGNUP LOGIC ---
+// --- Signup Form Logic ---
 const signupModal = document.getElementById("signup-modal");
 const openSignupBtn = document.getElementById("open-signup-btn");
 const closeSignupBtn = document.getElementById("close-signup-btn");
@@ -50,12 +74,17 @@ const signupForm = document.getElementById("signup-form");
 const signupRole = document.getElementById("signup-role");
 const signupUsername = document.getElementById("signup-username");
 const signupPassword = document.getElementById("signup-password");
-const signupShowPassword = document.getElementById("signup-show-password");
+const signupEye = document.getElementById("toggle-signup-eye");
 const signupError = document.getElementById("signup-error");
 const signupSuccess = document.getElementById("signup-success");
-
-signupShowPassword.addEventListener("change", () => {
-  signupPassword.type = signupShowPassword.checked ? "text" : "password";
+signupEye.addEventListener("click", function () {
+  if (signupPassword.type === "password") {
+    signupPassword.type = "text";
+    signupEye.classList.add("active");
+  } else {
+    signupPassword.type = "password";
+    signupEye.classList.remove("active");
+  }
 });
 openSignupBtn.addEventListener("click", () => {
   signupModal.style.display = "flex";
@@ -69,258 +98,196 @@ signupForm.addEventListener("submit", function(e) {
   e.preventDefault();
   const role = signupRole.value;
   const username = signupUsername.value.trim();
-  const password = signupPassword.value;
+  const password = signupPassword.value.trim();
+  if(!/[A-Z]/.test(password)) {
+    signupError.textContent = "Password must contain at least one uppercase (capital) letter!";
+    signupError.style.display = "block";
+    signupSuccess.style.display = "none";
+    return;
+  }
   if (!username || !password) {
     signupError.textContent = "Enter username and password";
     signupError.style.display = "block";
     signupSuccess.style.display = "none";
     return;
   }
+  if (userCredentials[username] || ownerCredentials[username]) {
+    signupError.textContent = "Username already exists! Please choose a different name.";
+    signupError.style.display = "block";
+    signupSuccess.style.display = "none";
+    return;
+  }
   if (role === "user") {
-    if (userCredentials[username]) {
-      signupError.textContent = "User already exists!";
-      signupError.style.display = "block";
-      signupSuccess.style.display = "none";
-      return;
-    }
     userCredentials[username] = { username, password };
   } else {
-    if (ownerCredentials[username]) {
-      signupError.textContent = "Officer already exists!";
-      signupError.style.display = "block";
-      signupSuccess.style.display = "none";
-      return;
-    }
     ownerCredentials[username] = { username, password };
   }
+  saveCredentialsToLocal();
   signupError.style.display = "none";
   signupSuccess.textContent = "Registered successfully! Please login.";
   signupSuccess.style.display = "block";
-  setTimeout(() => { signupModal.style.display = "none"; }, 1200);
+  setTimeout(() => { signupModal.style.display = "none"; }, 1500);
 });
 
-// --- LOGOUT (APPLIES TO BOTH ROLES) ---
+// --- LOGOUT ---
 document.body.addEventListener('click', function(e){
   if (e.target && e.target.id === "logout-btn") {
     userApp.style.display = "none";
     ownerApp.style.display = "none";
     loginContainer.style.display = "block";
-    // Optionally, clear all dynamic fields, or use location.reload();
+    stopBarcodeAppUser(); // // Stop camera on User logout
+    stopBarcodeAppOwner(); // // Stop camera on Owner logout
+    loginErrorMsg.style.display = "none"; // Clear login error on logout
+    usernameInput.value = ""; // Clear login fields
+    passwordInput.value = "";
   }
 });
 
-// --- SHARED PRICE DATA ---
-let ownerProductPrices = {};
+// --- Storage for products (owner) and user bills ---
+let productDB = {}; // Key: barcode, Value: { price, discount }
 
-// --- USER BARCODE SCAN AND PAY ---
-function startBarcodeAppUser() {
-  const video = document.getElementById("camera-user");
-  const codeDisplay = document.getElementById("code-user");
-  const productDisplay = document.getElementById("product-user");
-  const addAnotherBtn = document.getElementById("add-another-btn-user");
-  const productList = document.getElementById("product-list-user");
-  const payBillBtn = document.getElementById("pay-bill-btn");
-  const totalBillDiv = document.getElementById("total-bill");
-
-  let scannedCodes = [];
-  let scannedProducts = [];
-  let scanning = true;
-
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then(stream => { video.srcObject = stream; startScanner(); })
-    .catch(err => productDisplay.innerHTML = "<span style='color:#b22222;'>Camera access error.</span>");
-
-  async function startScanner() {
-    if (!("BarcodeDetector" in window)) {
-      productDisplay.innerHTML = "<span style='color:#b22222;'>Barcode Detector not supported.</span>";
-      return;
-    }
-    const detector = new BarcodeDetector({ formats: ["ean_13", "qr_code", "upc_a"] });
-    setInterval(async () => {
-      if (!scanning) return;
-      try {
-        const barcodes = await detector.detect(video);
-        if (barcodes.length > 0) {
-          const code = barcodes[0].rawValue;
-          if (scannedCodes[scannedCodes.length - 1] !== code) {
-            codeDisplay.textContent = code;
-            scanning = false;
-            fetchProductDetails(code);
-          }
-        }
-      } catch (err) {
-        productDisplay.innerHTML = "<span style='color:#b22222;'>Scanning error.</span>";
-      }
-    }, 1000);
-  }
-
-  async function fetchProductDetails(code) {
-    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
-    const data = await response.json();
-    let html = '';
-    let prices = ownerProductPrices[code];
-    if (data.status === 1) {
-      html += `<h3>${data.product.product_name || "Unknown Product"}</h3>
-               <p>Brand: ${data.product.brands || "N/A"}</p>`;
-      if (prices) {
-        html += `<p>Actual Price: ₹${prices.actual || "?"}</p>
-                 <p>Discounted Price: ₹${prices.discount || "?"}</p>`;
-      } else {
-        html += `<p style="color:#a44738;">No price info (ask shop owner)</p>`;
-      }
-      html += `<img src="${data.product.image_front_url || ''}" width="120" style="border-radius:8px;">`;
-      addProductToList(data.product.product_name, code, data.product.brands, data.product.image_front_url, prices);
-    } else {
-      html = `<span style="color:#a44738;">Product not found.<br>Code: ${code}</span>`;
-    }
-    productDisplay.innerHTML = html;
-    addAnotherBtn.style.display = "block";
-  }
-
-  function addProductToList(name, code, brand, imageUrl, prices) {
-    scannedCodes.push(code);
-    scannedProducts.push({ name, code, brand, imageUrl, prices });
-    if (!productList.innerHTML) productList.innerHTML = `<h3>Scanned Products</h3>`;
-    productList.innerHTML += `
-      <div style="margin-bottom:14px; padding-bottom:8px; border-bottom:1px dotted #c69d78;">
-        <strong>${name}</strong><br>
-        <span style="color:#835339;">Code:</span> ${code}<br>
-        <span style="color:#835339;">Brand:</span> ${brand}<br>
-        ${prices ?
-          `<span style="color:#835339;">Actual Price:</span> ₹${prices.actual}<br>
-          <span style="color:#835339;">Discount Price:</span> ₹${prices.discount}<br>` :
-          `<span style="color:#a44738;">No Price Info</span><br>`
-        }
-        ${imageUrl ? `<img src="${imageUrl}" width="70" style="border-radius:6px;">` : ""}
-      </div>`;
-  }
-  addAnotherBtn.onclick = () => {
-    productDisplay.innerHTML = ""; codeDisplay.textContent = "None";
-    scanning = true; addAnotherBtn.style.display = "none";
-  };
-  payBillBtn.onclick = () => {
-    let total = 0;
-    scannedProducts.forEach(p => {
-      if (p.prices) total += parseFloat(p.prices.discount || p.prices.actual || 0);
-    });
-    totalBillDiv.innerHTML = `Total Amount to Bill: ₹${total.toFixed(2)}`;
-  };
-}
-
-// --- OWNER BARCODE SCAN/EDIT ---
+// --- OWNER DASHBOARD ---
+// Barcode scan logic for owner
+let ownerScanning = false;
 function startBarcodeAppOwner() {
-  const video = document.getElementById("camera-owner");
-  const codeDisplay = document.getElementById("code-owner");
-  const productDisplay = document.getElementById("product-owner");
-  const addForm = document.getElementById("add-details-form");
-  const actualInput = document.getElementById("actual-price");
-  const discountInput = document.getElementById("discount-price");
-  const addAnotherBtn = document.getElementById("add-another-btn-owner");
-  const productList = document.getElementById("product-list-owner");
-
-  let scannedCodes = [];
-  let scanning = true;
-  let currentCode = null;
-  let currentProduct = null;
-
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then(stream => { video.srcObject = stream; startScanner(); })
-    .catch(err => productDisplay.innerHTML = "<span style='color:#b22222;'>Camera access error.</span>");
-
-  async function startScanner() {
-    if (!("BarcodeDetector" in window)) {
-      productDisplay.innerHTML = "<span style='color:#b22222;'>Barcode Detector not supported.</span>";
-      return;
-    }
-    const detector = new BarcodeDetector({ formats: ["ean_13", "qr_code", "upc_a"] });
-    setInterval(async () => {
-      if (!scanning) return;
-      try {
-        const barcodes = await detector.detect(video);
-        if (barcodes.length > 0) {
-          const code = barcodes[0].rawValue;
-          if (scannedCodes[scannedCodes.length - 1] !== code) {
-            codeDisplay.textContent = code;
-            scanning = false;
-            fetchProductDetails(code);
-          }
-        }
-      } catch (err) {
-        productDisplay.innerHTML = "<span style='color:#b22222;'>Scanning error.</span>";
-      }
-    }, 1000);
-  }
-
-  async function fetchProductDetails(code) {
-    currentCode = code;
-    const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
-    const data = await response.json();
-    let html = '';
-    if (data.status === 1) {
-      currentProduct = data.product;
-      html += `<h3>${data.product.product_name || "Unknown Product"}</h3>
-               <p>Brand: ${data.product.brands || "N/A"}</p>
-               <img src="${data.product.image_front_url || ''}" width="120" style="border-radius:8px;">`;
-      if (ownerProductPrices[code]) {
-        actualInput.value = ownerProductPrices[code].actual;
-        discountInput.value = ownerProductPrices[code].discount;
-      } else {
-        actualInput.value = '';
-        discountInput.value = '';
-      }
-      addForm.style.display = "block";
-      addAnotherBtn.style.display = "none";
-    } else {
-      html = `<span style="color:#a44738;">Product not found.<br>Code: ${code}</span>`;
-      addForm.style.display = "none";
-      addAnotherBtn.style.display = "block";
-    }
-    productDisplay.innerHTML = html;
-  }
-
-  addForm.onsubmit = function(e) {
-    e.preventDefault();
-    if (currentCode) {
-      ownerProductPrices[currentCode] = {
-        actual: actualInput.value,
-        discount: discountInput.value
-      };
-      addProductToList(
-        currentProduct ? currentProduct.product_name : "Unknown Product",
-        currentCode,
-        currentProduct ? currentProduct.brands : "N/A",
-        currentProduct ? currentProduct.image_front_url : "",
-        actualInput.value,
-        discountInput.value
-      );
-      addForm.style.display = "none";
-      addAnotherBtn.style.display = "block";
-    }
-  };
-
-  function addProductToList(name, code, brand, imageUrl, actual, discount) {
-    scannedCodes.push(code);
-    if (!productList.innerHTML) productList.innerHTML = `<h3>Managed Products</h3>`;
-    productList.innerHTML += `
-      <div style="margin-bottom:14px; padding-bottom:8px; border-bottom:1px dotted #c69d78;">
-        <strong>${name}</strong><br>
-        <span style="color:#835339;">Code:</span> ${code}<br>
-        <span style="color:#835339;">Brand:</span> ${brand}<br>
-        <span style="color:#835339;">Actual Price:</span> ₹${actual}<br>
-        <span style="color:#835339;">Discount Price:</span> ₹${discount}<br>
-        ${imageUrl ? `<img src="${imageUrl}" width="70" style="border-radius:6px;">` : ""}
-      </div>`;
-  }
-
-  addAnotherBtn.onclick = () => {
-    productDisplay.innerHTML = "";
-    codeDisplay.textContent = "None";
-    scanning = true;
-    addAnotherBtn.style.display = "none";
-    addForm.style.display = "none";
-    actualInput.value = "";
-    discountInput.value = "";
-    currentCode = null;
-    currentProduct = null;
-  };
+  if (ownerScanning) return;
+  ownerScanning = true;
+  Quagga.init({ // // Initialize QuaggaJS to start camera streaming and scanning
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#camera-owner"),
+      constraints: { facingMode: "environment" }
+    },
+    decoder: { readers: ["code_128_reader","ean_reader","ean_8_reader","upc_reader",
+          "upc_e_reader","codabar_reader","i2of5_reader","2of5_reader","code_39_reader","code_93_reader"] }
+  }, function(err) {
+    if (err) { alert("Camera error: " + err.message + ". Check if your connection is HTTPS."); return; }
+    Quagga.start(); // // Start the live camera stream after initialization is complete
+  });
+  Quagga.onDetected(ownerOnDetected);
 }
+function stopBarcodeAppOwner() {
+  if (ownerScanning) {
+    try { Quagga.stop(); } catch {} // // Safely stop the QuaggaJS process and release the camera
+    Quagga.offDetected(ownerOnDetected);
+    ownerScanning = false;
+  }
+}
+function ownerOnDetected(result) {
+  if (!result || !result.codeResult || !result.codeResult.code) return;
+  let code = result.codeResult.code;
+  // This logic is designed to stop the camera once a barcode is detected,
+  // allowing the Owner to input product details without constant scanning.
+  // We will keep it on for continuous scanning as requested by removing the stop logic.
+
+  // --- Start of Manual Entry/Details update logic ---
+  // const barcodeOwnerInput = document.getElementById("barcode-owner");
+  // barcodeOwnerInput.value = code;
+  // document.getElementById("scan-result-owner").textContent = "Barcode: " + code;
+  // Quagga.stop();
+  // ownerScanning = false;
+  // Quagga.offDetected(ownerOnDetected);
+  // --- End of Manual Entry/Details update logic ---
+
+  // New logic for continuous scanning, just display the latest result
+  document.getElementById("scan-result-owner").innerHTML = `
+    <div style="font-weight:600; font-size:1.2em; color:#007bff;">Barcode Detected:</div>
+    <div style="font-size:1.5em; color:#333;">${code}</div>
+    <div style="margin-top:10px;">(Scanning is continuous)</div>
+  `;
+}
+
+// Manual Barcode visibility (removed as per new design)
+// function setManualBarcodeVisibility(show) {
+//   // document.getElementById("manual-barcode-area").style.display = show ? "block" : "none";
+// }
+
+// Owner: Add/Update Button (Logic remains for future use with input fields)
+// document.getElementById("add-btn-owner").onclick = function() {
+//   const barcode = document.getElementById("barcode-owner").value.trim();
+//   const price = document.getElementById("price-owner").value.trim();
+//   const discount = document.getElementById("discount-owner").value.trim();
+//   if (!barcode) {
+//     document.getElementById("product-message-owner").textContent = "Barcode required!";
+//     return;
+//   }
+//   if (price === "" || isNaN(Number(price))) {
+//     document.getElementById("product-message-owner").textContent = "Enter a valid price!";
+//     return;
+//   }
+//   productDB[barcode] = {
+//     price: Number(price),
+//     discount: discount ? Number(discount) : 0
+//   };
+//   document.getElementById("product-message-owner").textContent = "Product saved! Barcode: " + barcode;
+// }
+
+// Scan & Stop buttons (Removed)
+// document.getElementById("start-scan-owner").onclick = startBarcodeAppOwner;
+// document.getElementById("stop-scan-owner").onclick = stopBarcodeAppOwner;
+
+// --- USER DASHBOARD ---
+// Barcode scan logic for user
+let userScanning = false;
+function startBarcodeAppUser() {
+  if (userScanning) return;
+  userScanning = true;
+  Quagga.init({ // // Initialize QuaggaJS to start camera streaming and scanning
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#camera-user"),
+      constraints: { facingMode: "environment" }
+    },
+    decoder: { readers: ["code_128_reader","ean_reader","ean_8_reader","upc_reader",
+          "upc_e_reader","codabar_reader","i2of5_reader","2of5_reader","code_39_reader","code_93_reader"] }
+  }, function(err) {
+    if (err) { alert("Camera error: " + err.message + ". Check if your connection is HTTPS."); return; }
+    Quagga.start(); // // Start the live camera stream after initialization is complete
+  });
+  Quagga.onDetected(userOnDetected);
+}
+function stopBarcodeAppUser() {
+  if (userScanning) {
+    try { Quagga.stop(); } catch {} // // Safely stop the QuaggaJS process and release the camera
+    Quagga.offDetected(userOnDetected);
+    userScanning = false;
+  }
+}
+function userOnDetected(result) {
+  if (!result || !result.codeResult || !result.codeResult.code) return;
+  let code = result.codeResult.code;
+  // document.getElementById("scan-result-user").textContent = "Barcode: " + code;
+  let product = productDB[code];
+  if (product) {
+    document.getElementById("user-content").innerHTML = `
+      <div class="product-result">
+        <div><b>Item:</b> Scanned Product</div>
+        <div><b>Barcode:</b> ${code}</div>
+        <div><b>Price:</b> ₹${product.price.toFixed(2)}</div>
+        <div><b>Discount:</b> ${product.discount}%</div>
+        <div style="font-weight:700; color:#339933;"><b>Net Total:</b> ₹${(product.price * (1 - product.discount/100)).toFixed(2)}</div>
+      </div>
+    `;
+  } else {
+    document.getElementById("user-content").innerHTML = `<div class="product-result" style="color:#db2222;">No price info saved for barcode: <b>${code}</b></div>`;
+  }
+  // No stop logic here either, allowing the user to continuously scan items for their bill.
+}
+
+// Scan & Stop buttons (Removed)
+// document.getElementById("start-scan-user").onclick = startBarcodeAppUser;
+// document.getElementById("stop-scan-user").onclick = stopBarcodeAppUser;
+
+/* --- Global Styles --- */
+/* (CSS is unchanged as it was provided for context/styling the non-functional buttons) */
+
+// --- Initial setup on script load ---
+// Initial save of default credentials if they don't exist
+if (!localStorage.getItem("userCredentials")) {
+    saveCredentialsToLocal();
+}
+// Log the current credentials for easy testing (remove in production)
+console.log("User Credentials:", userCredentials);
+console.log("Owner Credentials:", ownerCredentials);
