@@ -1,168 +1,429 @@
+/* --- Global Styles --- */
 body, h1, h3, .tagline, #output, #product, #add-another-btn, footer {
   font-family: 'Poppins', 'Roboto Slab', Arial, sans-serif;
 }
 
 body {
   margin: 0;
-  background: linear-gradient(135deg, #ecdccc 40%, #8d6558 120%);
   min-height: 100vh;
+  /* Matching background from logo's light grey */
+  background: linear-gradient(120deg, #f0f0f0 0%, #e0e0e0 100%);
 }
 
-/* Consistent login block with logo & style */
+/* --- Eye Icon for Password Toggle --- */
+.password-row {
+  position: relative;
+  width: 92%;
+  margin: 16px auto;
+}
+.password-row input {
+  width: 100% !important;
+  margin: 0 !important;
+}
+.eye-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>');
+  background-size: contain;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.eye-icon.active {
+  opacity: 0.9;
+  /* Crossed out eye when visible (optional: you need to adjust SVG or use a font icon) */
+  /* background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.94 3.19M2 2l20 20"></path><line x1="1" y1="12" x2="23" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>'); */
+}
+
+
+/* --- Login Container Styles --- */
 #login-container {
-  margin: 40px auto 0 auto;
+  margin: 100px auto 0 auto;
   max-width: 400px;
-  background: #f2e8de;
-  padding: 32px 22px 38px 22px;
-  border-radius: 18px;
-  box-shadow: 0 4px 14px #b99e81;
-  border: 2px solid #c69d78;
+  background: #ffffff; /* Clean white for the login box */
+  padding: 40px 35px 50px 35px;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08); /* Soft shadow */
+  border: 1px solid #e9e9e9; /* Subtle light grey border */
   text-align: center;
+  position: relative;
 }
+
+/* Floating Logo Block (repositioning & styling for the logo image itself) */
 #login-container .logo-block {
-  display: flex; align-items: center; justify-content: center; margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  padding-top: 10px;
 }
-#login-container .logo { height: 55px; margin-right: 16px; }
-#login-container .caption h1 { font-size: 1.4em; margin:0; color: #3e261b;}
-#login-container .caption .tagline { color: #835339; font-size: 0.97em; font-style: italic; }
-#login-container h2 { color: #835339; margin-bottom: 6px; }
-#login-form select,
-#login-form input {
+#login-container .logo {
+  position: absolute;
+  top: -40px; /* Half its height to float above the box */
+  left: 50%;
+  transform: translateX(-50%);
+  height: 80px;
+  max-width: 120px;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #d0d0d0;
+  background: #fdfdfd;
+  color: #333333;
+}
+
+/* Caption and Heading in Login Container */
+#login-container .caption h1 {
+  font-size: 2.1em;
+  margin: 0;
+  color: #333333;
+}
+#login-container .caption .tagline {
+  color: #666666;
+  font-size: 1.1em;
+  font-style: normal;
+  font-weight: 400;
+}
+#login-container h2 {
+  color: #333333;
+  margin-bottom: 24px;
+  font-size: 1.5em;
+  font-weight: 600;
+  text-shadow: none;
+}
+/* Remove sparkle decoration */
+#login-container::after {
+  display: none;
+}
+
+/* --- Login Form Input Styles --- */
+#login-form input, #login-form select {
   display: block;
   width: 92%;
-  margin: 12px auto;
-  padding: 10px;
-  border: 1px solid #c69d78;
-  border-radius: 7px;
-  font-size: 1em;
-  background: #ecdccc;
+  margin: 16px auto;
+  padding: 14px;
+  border: 1.5px solid #dcdcdc; /* Light grey border */
+  border-radius: 9px;
+  font-size: 1.05em;
+  font-family: 'Poppins', Arial, sans-serif;
+  background: #fdfdfd; /* Almost white input background */
+  box-shadow: none;
+  transition: border 0.2s, box-shadow 0.2s;
 }
-#login-form button {
-  background: linear-gradient(135deg, #b99e81 30%, #ecdccc 120%);
-  color: #3e261b;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  box-shadow: 0 2px 8px #c69d78;
-  font-size: 1em;
-  cursor: pointer;
-  font-weight: 600;
-}
-#login-form label {
-  margin-bottom: 6px;
+#login-form input:focus, #login-form select:focus {
+  border-color: #999999; /* Medium grey for focus */
+  box-shadow: 0 0 0 3px rgba(153, 153, 153, 0.1); /* Soft grey focus glow */
+  outline: none;
 }
 
+/* --- Login Form Button Styles --- */
+#login-form button {
+  color: #ffffff;
+  padding: 14px 28px;
+  border-radius: 11px;
+  border: none;
+  margin: 10px 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+  font-weight: 600;
+  font-family: 'Poppins', Arial;
+  font-size: 1.06em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 92%;
+}
+/* Primary "Login" button - matte black */
+#login-form button#login-btn {
+  background: #333333; /* Matte black */
+  color: #fff;
+}
+/* Secondary "Sign Up" button - ghost style */
+#login-form button#open-signup-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 2px solid #cccccc; /* Light grey border */
+  box-shadow: none;
+  margin-top: 8px;
+}
+/* Hover States */
+#login-form button#login-btn:hover {
+  background: #000000; /* Pure black on hover */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+#login-form button#open-signup-btn:hover {
+  background: #f9f9f9;
+  border-color: #333333; /* Dark grey border on hover */
+  color: #333333;
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+/* --- SignUp Modal Styles --- */
 #signup-modal {
   position: fixed;
   top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.32);
+  background: rgba(0,0,0,0.4); /* Darker overlay for modal */
   z-index:10;
   display:flex;align-items:center;justify-content:center;
 }
 #signup-box {
-  background:#f2e8de;
-  padding:26px 24px;
-  border-radius:12px;
-  box-shadow:0 4px 14px #b99e81;
-  border:2px solid #c69d78;
-  max-width:360px;
+  background: #ffffff; /* White for modal box */
+  min-width: 420px;
+  min-height: 340px;
+  padding: 42px 36px 36px 36px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0; /* Light grey border */
+  text-align: center;
+  position: relative;
+  font-size: 1.18em;
+  letter-spacing: 0.05em;
+  transition: box-shadow 0.4s;
 }
-#signup-box h2 { margin-bottom:14px; color:#835339; }
-#signup-error, #signup-success {margin-top:10px;}
+#signup-box::before {
+  content:"";
+  position:absolute;
+  top:-8px;bottom:-8px;left:-8px;right:-8px;
+  border-radius: 24px;
+  border: 2px solid #f0f0f0; /* Very light grey subtle outer border */
+  pointer-events:none;
+  opacity: 0.6;
+}
+#signup-box h2 {
+  margin-bottom:24px;
+  color: #333333; /* Dark grey heading */
+  font-size:2em;
+  font-family: 'Roboto Slab', 'Poppins', Arial, sans-serif;
+  font-weight: 800;
+  text-shadow: none;
+}
+#signup-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+}
+#signup-form > div { /* Target the div containing select and username input */
+    display: flex;
+    gap: 10px;
+    width: 92%; /* Match other elements' width */
+    justify-content: center;
+}
+#signup-form select, #signup-form input {
+  font-size:1.1em;
+  padding:12px 14px;
+  border-radius: 10px;
+  border: 1px solid #dddddd; /* Light grey border */
+  background: #fdfdfd; /* Almost white input */
+  box-shadow: none;
+  margin-bottom: 6px;
+  width: 100%; /* Fill the container div */
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+#signup-form select {
+    flex: 1;
+}
+#signup-form input {
+    flex: 2;
+}
+#signup-form select:focus, #signup-form input:focus {
+  border-color: #999999; /* Medium grey on focus */
+  box-shadow: 0 0 0 3px rgba(153, 153, 153, 0.1);
+  outline: none;
+}
 
+#signup-form button {
+  background: #333333; /* Matte black for register button */
+  color: #ffffff;
+  padding:12px 34px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  box-shadow:0 3px 14px rgba(0,0,0,0.1);
+  font-family: 'Roboto Slab', 'Poppins';
+  font-size: 1.05em;
+  margin-top: 10px;
+  margin-right: 5px;
+  margin-left: 5px;
+  transition: background 0.3s, box-shadow 0.3s, color 0.3s;
+  width: 92%; /* Set width for buttons */
+}
+#signup-form button:hover {
+  background: #000000; /* Pure black on hover */
+  color: #ffffff;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.15);
+}
+#signup-error, #signup-success {
+  margin-top: 10px;
+  font-size: 1.1em;
+  padding: 7px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  width: 92%;
+}
+#signup-error { color: #cc3333; background: #ffebeb;} /* Red error, light red background */
+#signup-success { color: #339933; background: #ebffeb;} /* Green success, light green background */
+
+/* --- Main App Interface (User & Owner) --- */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #a17657cc;
+  background: #333333; /* Matte black header background */
   padding: 10px 36px;
-  border-bottom: 3px solid #c69d78;
-  box-shadow: 0 2px 12px #b99e81;
+  border-bottom: 3px solid #666666; /* Darker grey border */
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
 }
-.logo-block { display: flex; align-items: center; }
-.logo {
+.app-header .logo-block { display: flex; align-items: center; }
+.app-header .logo {
   height: 60px;
   border-radius: 14px;
-  box-shadow: 0 1px 8px #b99e81;
-  background: #ecdccc;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.1);
+  background: #fdfdfd; /* Match the floating logo's background */
   margin-right: 14px;
 }
-.caption h1 {
-  font-size: 1.8em; margin: 0; color: #3e261b; font-family: 'Roboto Slab', 'Poppins', Arial, sans-serif;
+.app-header .caption h1 {
+  font-size: 1.8em; margin: 0; color: #ffffff; /* White text for header title */
+  font-family: 'Roboto Slab', 'Poppins', Arial, sans-serif;
 }
-.caption .tagline { color: #835339; font-size: 1em; font-style: italic; }
+.app-header .caption .tagline { color: #cccccc; font-size: 1em; font-style: normal; } /* Light grey tagline */
 
 .logout-btn {
-  background: #a44738;
-  color: #f2e8de;
+  background: #666666; /* Medium grey logout button */
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   padding: 8px 18px;
   font-weight: 600;
   font-size: 1.05em;
-  box-shadow: 0 1px 2px #ccc;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
   cursor: pointer;
   position: relative;
   right: -10px;
+  transition: background 0.2s;
 }
-.logout-btn:hover { background: #8d6558; }
+.logout-btn:hover { background: #444444; } /* Darker grey on hover */
 
-.main-flex {
+/* USER DASHBOARD SCANNER AREA */
+#user-app main {
+  text-align: center;
+  padding: 20px;
+}
+#user-app h3 {
+    color: #444;
+    font-weight: 400;
+}
+
+#camera-user {
+  width: 90%;
+  max-width: 500px;
+  height: auto;
+  min-height: 250px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background: #eee;
+  margin: 20px auto;
+  display: block;
+  transform: scaleX(-1); /* Mirror view for user */
+}
+
+#user-content {
+  width: 90%;
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  text-align: left;
+  line-height: 1.8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.product-result {
+  font-family: 'Roboto Slab', 'Poppins', Arial, sans-serif;
+}
+.product-result div {
+    padding: 2px 0;
+}
+
+
+/* OWNER DASHBOARD SPECIFIC STYLES */
+
+.dashboard-main {
   display: flex;
   flex-wrap: wrap;
-  margin: 30px 0 10px 0;
-  justify-content: flex-start;
-  gap: 36px;
+  justify-content: center;
+  gap: 30px;
+  padding: 30px 20px;
 }
-.scanner-side {
-  flex: 1 1 300px;
-  min-width: 340px;
-  max-width: 420px;
-  background: #f2e8de;
-  border-radius: 14px;
-  padding: 30px 20px 24px 22px;
-  box-shadow: 0 4px 16px #b99e81;
-  border: 2px solid #c69d78;
-  display: flex; flex-direction: column; align-items:center;
-}
-.scanner-side video {
-  width: 310px;
-  height: 230px;
-  max-width: 100%;
+
+.dashboard-card {
+  background: #ffffff;
+  padding: 25px;
   border-radius: 12px;
-  border: 4px solid #c69d78;
-  box-shadow: 0 2px 13px #cfb8a1;
-  background: #ecdccc;
-  transform: scaleX(-1);
-}
-.details-side {
-  flex: 1 1 320px;
-  min-width: 340px;
-  background: #f9ede2;
-  padding: 28px 16px 22px 16px;
-  border-radius: 14px;
-  border: 2px solid #c69d78;
-  box-shadow: 0 4px 14px #b99e81;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.product-list, #product-user, #product-owner {
-  width: 100%;
-  margin-bottom:8px;
-}
-footer {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  min-width: 320px;
+  max-width: 400px;
+  flex: 1 1 300px;
   text-align: center;
-  background: #f7fcff;
-  color: #8d6558;
-  padding: 14px 0;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  font-size: 1em;
-  letter-spacing: 0.7px;
 }
 
+.dashboard-card h2 {
+  color: #333;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
 
+.dashboard-video {
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+  background: #eee;
+  transform: scaleX(-1); /* Corrects mirror image for user experience */
+}
 
+/* Updated Product Detail Card (Owner) */
+#manual-barcode-area input {
+  display: block;
+  width: 90%;
+  margin: 8px auto;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+}
 
+#manual-barcode-area button {
+  background: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+  width: 90%;
+}
+
+#manual-barcode-area button:hover {
+  background: #0056b3;
+}
+
+#scan-result-owner {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  border: 1px solid #000000;
+  font-size: 1.1em;
+  color: #555;
+}
