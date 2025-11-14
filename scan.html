@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PayXpress | Scanner</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    
+    <style>
+        .camera-wrapper {
+            /* This ensures the wrapper limits the size and is centered */
+            width: 100%;
+            max-width: 450px; 
+            margin: 0 auto 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #camera-container {
+            /* CRITICAL: Use padding-bottom for aspect ratio (16:9 ratio) */
+            width: 100%;
+            height: 0; 
+            padding-bottom: 56.25%; /* 9 / 16 = 0.5625 */
+            position: relative;
+            background-color: #333; /* Background for visual check */
+        }
+
+        /* CRITICAL: Style the video and canvas elements that Quagga injects */
+        #camera-container > video, 
+        #camera-container > canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover; /* Ensures the video fills the container */
+        }
+
+        /* Ensure the element we manually hide in JS is properly concealed */
+        .camera-feed-video {
+             display: none !important;
+        }
+    </style>
+    </head>
+<body>
+    <div id="dashboard-view" class="scanner-page-container hidden">
+        <header class="dashboard-header">
+            <div class="logo-area">
+                <h1>PayXpress</h1>
+                <img src="payxpress-logo.png" alt="PayXpress Logo" class="payxpress-image-logo">
+            </div>
+            <p class="dashboard-greeting" id="dashboard-greeting"></p>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </header>
+
+        <div class="scanner-main-content">
+            <div class="scanner-left form-card">
+                <h2 id="current-role">SCANNER</h2>
+                <div id="message-display" class="message-display hidden"></div>
+
+                <div class="camera-wrapper">
+                    <div class="camera-container" id="camera-container">
+                        <video id="camera-feed" class="camera-feed-video" autoplay muted playsinline></video>
+                        <p class="initial-instruction">Please enable camera access to start scanning.</p>
+                    </div>
+                    <div class="scan-line"></div>
+                </div>
+
+                <p id="scan-instructions">Hold the barcode in front of the camera.</p>
+            </div>
+
+            <div class="scanner-right form-card">
+                <h2>Product Details</h2>
+                <div id="product-result" class="hidden">
+                    <div class="product-info-section">
+                        <h3 id="product-name" class="product-info-title"></h3>
+                        <p>Barcode: <span id="product-barcode" class="product-info-value"></span></p>
+                        <p id="product-description" class="product-info-description"></p>
+                    </div>
+                    <hr>
+                    <div id="final-price-view">
+                        <h4>Final Price:</h4>
+                        <span id="final-price-display" class="final-price"></span>
+                    </div>
+                </div>
+
+                <div id="add-product-form" class="hidden modern-form-card">
+                    <h3 class="add-product-title">Add / Update Product</h3>
+
+                    <div class="input-group">
+                        <label for="barcode-input">Barcode</label>
+                        <input type="text" id="barcode-input" placeholder="Scan or enter barcode" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="product-name-input">Product Name</label>
+                        <input type="text" id="product-name-input" placeholder="Auto-filled when barcode matches" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="product-desc-input">Description</label>
+                        <input type="text" id="product-desc-input" placeholder="Auto-filled when barcode matches" />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="product-price-input">Price (₹)</label>
+                        <input type="number" id="product-price-input" placeholder="Enter or update price" />
+                    </div>
+
+                    <button class="primary-button save-product-button" onclick="addOrUpdateProduct()">💾 Save Product</button>
+                </div>
+                
+                <div id="user-cart-view" class="hidden modern-form-card">
+                    <h3 class="cart-title">Your Cart</h3>
+                    <div id="cart-items" class="cart-items-container">
+                        <p style="text-align: center;">Scan your first item!</p>
+                    </div>
+                    <hr>
+                    <div class="cart-total-line">
+                        <strong>TOTAL:</strong>
+                        <span id="cart-total" class="final-price">₹0.00</span>
+                    </div>
+                    <button id="finish-scan-btn" class="primary-button hidden" style="margin-top: 15px;">Finish & Checkout</button>
+                    <div id="cart-summary" class="hidden">
+                        <p>Thank you for shopping!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
