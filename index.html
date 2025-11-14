@@ -1,112 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>PayXpress – Barcode Scanner</title>
-  <link href="https://fonts.googleapis.com/css?family=Poppins:600,400|Roboto+Slab:700,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script> 
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>PayXpress | Login</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div id="login-container">
-    <div class="logo-block">
-      <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
-      <div class="caption">
-        <h1>PayXpress</h1>
-        <div class="tagline">Scan & Pay</div>
-      </div>
+    <div class="login-container">
+        <div class="mode-selector">
+            <button id="user-mode" class="mode-button active" onclick="setMode('user')">User Login</button>
+            <button id="officer-mode" class="mode-button" onclick="setMode('officer')">Officer Login</button>
+        </div>
+
+        <div class="form-card" id="form-card">
+            <div class="logo-area-internal">
+                <h1>PayXpress</h1>
+                <img src="payxpress-logo.png" alt="PayXpress Logo" class="payxpress-image-logo-internal">
+            </div>
+
+            <div id="message-display" class="message-display hidden"></div>
+
+            <div id="login-view">
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="username">Username / Email</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your credentials" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="••••••••" required>
+                        <small class="case-sensitive-note">Password is Case Sensitive</small>
+                    </div>
+                    <button type="submit" class="sign-in-button primary-button">LOGIN</button>
+
+                    <div class="links">
+                        <a href="#">Forgot System Key?</a>
+                        <span class="separator">|</span>
+                        <button type="button" id="create-account-link" class="link-button" onclick="showRegisterView()">Create Account</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="register-view" class="hidden">
+                <h2 class="form-title">New Account Registration</h2>
+                <form id="register-form">
+                    <div class="input-group">
+                        <label for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" name="reg-email" placeholder="user@domain.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password">Password (Min 8 Chars)</label>
+                        <input type="password" id="reg-password" name="reg-password" placeholder="••••••••" required minlength="8">
+                    </div>
+                    <div class="input-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="sign-in-button primary-button">REGISTER</button>
+
+                    <div class="links">
+                        <button type="button" class="link-button" onclick="showLoginView()">← Back to Log In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <h2>Login to PayXpress</h2>
-    <form id="login-form">
-      <select id="role">
-        <option value="user">User</option>
-        <option value="owner">Owner/Officer</option>
-      </select>
-      <input type="text" id="username" placeholder="Username" required>
-      <div class="password-row">
-        <input type="password" id="password" placeholder="Password" required>
-        <span id="toggle-login-eye" class="eye-icon"></span>
-      </div>
-      <button type="submit" id="login-btn">Login</button>
-      <button type="button" id="open-signup-btn">Sign Up</button>
-      <p id="login-error" style="color: #c01f1f; display: none"></p>
-    </form>
-  </div>
 
-  <div id="signup-modal" style="display:none;">
-    <div id="signup-box">
-      <h2>Sign Up</h2>
-      <form id="signup-form">
-        <div style="display:flex; gap:10px; width:100%; justify-content:center;">
-          <select id="signup-role">
-            <option value="user">User</option>
-            <option value="owner">Owner/Officer</option>
-          </select>
-          <input type="text" id="signup-username" placeholder="New Username" required>
-        </div>
-        <div class="password-row">
-          <input type="password" id="signup-password" placeholder="New Password" required>
-          <span id="toggle-signup-eye" class="eye-icon"></span>
-        </div>
-        <button type="submit" id="signup-btn">Register</button>
-        <button type="button" id="close-signup-btn">Cancel</button>
-        <p id="signup-error" style="display:none;"></p>
-        <p id="signup-success" style="display:none;"></p>
-      </form>
-    </div>
-  </div>
-
-  <div id="user-app" style="display:none">
-    <header class="app-header">
-      <div class="logo-block">
-        <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
-        <div class="caption">
-          <h1>PayXpress</h1>
-          <div class="tagline">Scan & Pay</div>
-        </div>
-      </div>
-      <button id="logout-btn" class="logout-btn">Logout</button>
-    </header>
-    <main>
-      <h3>Welcome, User! Hold your products to the camera to scan and get your bill details.</h3>
-      <video id="camera-user" autoplay></video> 
-      <div id="user-content">
-        <div class="product-result" style="padding:15px; border:1px solid #ddd; border-radius:10px;">Ready to scan...</div>
-      </div>
-    </main>
-  </div>
-
-  <div id="owner-app" style="display:none">
-    <header class="app-header">
-      <div class="logo-block">
-        <img src="payxpress-logo.png" alt="PayXpress Logo" class="logo">
-        <div class="caption">
-          <h1>PayXpress (Owner)</h1>
-          <div class="tagline">Add Product Details & Offers</div>
-        </div>
-      </div>
-      <button id="logout-btn" class="logout-btn">Logout</button>
-    </header>
-    <main>
-      <div class="dashboard-main">
-        <div class="dashboard-card">
-          <h2>Barcode Scanner (Continuous)</h2>
-          <video id="camera-owner" class="dashboard-video" autoplay></video>
-          <div id="scan-result-owner" class="product-result">Waiting for scan...</div>
-        </div>
-        <div class="dashboard-card" id="manual-barcode-area">
-          <h2>Product Data Entry</h2>
-          <p id="product-message-owner" style="margin-bottom:10px;"></p>
-          <input type="text" id="barcode-owner" placeholder="Barcode (auto-filled on scan)">
-          <input type="number" id="price-owner" placeholder="Price (₹)">
-          <input type="number" id="discount-owner" placeholder="Discount (%)">
-          <button id="add-btn-owner">Save/Update Product</button>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
