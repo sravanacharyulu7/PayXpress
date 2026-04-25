@@ -40,73 +40,72 @@ let lastScanTime = 0;
 // ============================
 // Utility Functions
 // ============================
-
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount || 0);
 }
 
 function showMessage(type, text, duration = 3000) {
   const msg = document.getElementById('message-display');
   if (!msg) return;
+
   msg.textContent = text;
   msg.className = 'message-display';
   msg.classList.add(type === 'success' ? 'message-success' : 'message-error');
   msg.classList.remove('hidden');
+
   setTimeout(() => msg.classList.add('hidden'), duration);
 }
 
 // ============================
-// AUDIO FEEDBACK 
+// AUDIO FEEDBACK
 // ============================
-
 function playScanSound() {
-    // Only run if the browser supports AudioContext
-    if (!window.AudioContext && !window.webkitAudioContext) return;
+  if (!window.AudioContext && !window.webkitAudioContext) return;
 
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
 
-    // Connect the oscillator to the gain node, and the gain node to the speakers
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
 
-    // 🔊 Standard Checkout Beep (Default Profile)
-    const frequency = 800; // High pitch
-    const duration = 0.08; // 80 milliseconds
-    
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    
-    // Set the gain to 1.0 (full volume) immediately
-    gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+  const frequency = 800;
+  const duration = 0.08;
 
-    // Fade out quickly for a crisp stop
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration); 
+  oscillator.type = 'square';
+  oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
 
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + duration);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + duration);
 }
 
-
 // ============================
-// LOGIN & REGISTER 
+// LOGIN & REGISTER
 // ============================
-
 function setMode(mode) {
   currentMode = mode;
+
   const userBtn = document.getElementById('user-mode');
   const officerBtn = document.getElementById('officer-mode');
+
   if (userBtn) userBtn.classList.toggle('active', mode === 'user');
   if (officerBtn) officerBtn.classList.toggle('active', mode === 'officer');
+
   const createLink = document.getElementById('create-account-link');
   if (createLink) createLink.classList.toggle('hidden', mode === 'officer');
+
   showLoginView();
 }
 
 function showLoginView() {
   const lv = document.getElementById('login-view');
   const rv = document.getElementById('register-view');
+
   if (lv) lv.classList.remove('hidden');
   if (rv) rv.classList.add('hidden');
 }
@@ -114,26 +113,32 @@ function showLoginView() {
 function showRegisterView() {
   const lv = document.getElementById('login-view');
   const rv = document.getElementById('register-view');
+
   if (lv) lv.classList.add('hidden');
   if (rv) rv.classList.remove('hidden');
 }
 
 function handleLogin(e) {
   e.preventDefault();
+
   const username = document.getElementById('username')?.value.trim();
   const password = document.getElementById('password')?.value.trim();
 
   if (currentMode === 'officer') {
     if (username === OFFICER_EMAIL && password === OFFICER_PASSWORD) {
       showMessage('success', 'Officer Login Successful', 1200);
-      setTimeout(() => window.location.href = "scan.html?role=officer", 600);
+      setTimeout(() => {
+        window.location.href = "scan.html?role=officer";
+      }, 600);
     } else {
       showMessage('error', 'Invalid Officer Credentials', 2500);
     }
   } else {
     if (username && password) {
       showMessage('success', 'User Login Successful', 1200);
-      setTimeout(() => window.location.href = "scan.html?role=user", 600); 
+      setTimeout(() => {
+        window.location.href = "scan.html?role=user";
+      }, 600);
     } else {
       showMessage('error', 'Enter valid credentials', 2500);
     }
@@ -142,9 +147,14 @@ function handleLogin(e) {
 
 function handleRegister(e) {
   e.preventDefault();
+
   const p1 = document.getElementById('reg-password')?.value;
   const p2 = document.getElementById('confirm-password')?.value;
-  if (p1 !== p2) return showMessage('error', 'Passwords do not match');
+
+  if (p1 !== p2) {
+    return showMessage('error', 'Passwords do not match');
+  }
+
   showMessage('success', 'Account Created. Please Login.');
   setTimeout(showLoginView, 1200);
 }
@@ -152,112 +162,155 @@ function handleRegister(e) {
 // ============================
 // CAMERA SCANNER (Quagga)
 // ============================
-
 function initCamera() {
   const targetContainer = document.getElementById('camera-container');
-  if (!targetContainer) return;
-  
-  // Hide the initial instruction text and video element (if present)
+  if (!targetContainer || typeof Quagga === 'undefined') return;
+
   const instruction = targetContainer.querySelector('.initial-instruction');
   const video = document.getElementById('camera-feed');
 
   if (instruction) instruction.classList.add('hidden');
-  if (video) video.classList.add('hidden'); 
-  
+  if (video) video.classList.add('hidden');
+
   Quagga.init({
     inputStream: {
       name: "Live",
       type: "LiveStream",
-      // Fix applied: Use the selector string for reliability
-      target: '#camera-container', 
-      // CRITICAL FIX: Simplified constraints for better compatibility
-      constraints: { facingMode: "environment" } 
+      target: '#camera-container',
+      constraints: {
+        facingMode: "environment"
+      }
     },
-    decoder: { readers: ["ean_reader", "upc_reader", "code_128_reader"] },
-    locate: true
+    decoder: {
+      readers: [
+        "ean_reader",
+        "ean_8_reader",
+        "upc_reader",
+        "upc_e_reader",
+        "code_128_reader",
+        "code_39_reader"
+      ]
+    }
   }, err => {
     if (err) {
       console.error(err);
-      showMessage('error', 'Camera access failed. Check browser permissions and ensure the site is loaded over **HTTPS**.');
+      showMessage('error', 'Camera access failed. Check browser permissions and ensure the site is loaded over HTTPS.');
       return;
     }
+
     Quagga.start();
     showMessage('success', 'Scanner Ready');
   });
 
+  Quagga.offDetected?.();
+
   Quagga.onDetected(result => {
-    const code = result.codeResult.code;
-    // Debounce logic
+    const code = result?.codeResult?.code;
     const currentTime = Date.now();
-    if (!code || code.length < 8 || (code === lastScanned && (currentTime - lastScanTime) < 1500)) return;
-    
+
+    if (!code) return;
+    if (code === lastScanned && (currentTime - lastScanTime) < 1500) return;
+
     lastScanned = code;
     lastScanTime = currentTime;
-    
+
     handleBarcodeScan(code);
   });
 }
 
 // ============================
-// BARCODE HANDLER (Updated with sound)
+// BARCODE HANDLER
 // ============================
-
 function handleBarcodeScan(barcode) {
   const entry = PRODUCT_DB[barcode];
   const params = new URLSearchParams(window.location.search);
   const role = params.get('role');
 
-  if (entry && typeof entry.finalPrice !== 'undefined' && entry.finalPrice > 0) {
-    // --- Plays the beep sound on successful scan ---
-    playScanSound(); 
-    // ----------------------------------------------
-    const product = { ...entry, barcode };
+  if (entry && typeof entry.finalPrice !== 'undefined' && Number(entry.finalPrice) > 0) {
+    playScanSound();
+
+    const product = {
+      ...entry,
+      barcode,
+      finalPrice: Number(entry.finalPrice)
+    };
+
     displayProductDetails(product);
 
     if (role === 'user') {
       addToCart(product);
-      document.getElementById("user-cart-view")?.classList.remove("hidden");
-      document.getElementById("finish-scan-btn")?.classList.remove("hidden");
+      document.getElementById('user-cart-view')?.classList.remove('hidden');
+      document.getElementById('finish-scan-btn')?.classList.remove('hidden');
     }
-
-  } else if (KNOWN_PRODUCTS[barcode] && (typeof entry.finalPrice === 'undefined' || entry.finalPrice <= 0)) {
+  } else if (KNOWN_PRODUCTS[barcode]) {
     const item = KNOWN_PRODUCTS[barcode];
-    displayProductDetails({ ...item, barcode, finalPrice: 0 });
-    showMessage('error', 'Price not set — please update in officer mode');
+    displayProductDetails({
+      ...item,
+      barcode,
+      finalPrice: 0
+    });
+
+    if (role === 'officer') {
+      autoFillOfficerForm(barcode);
+    } else {
+      showMessage('error', 'Price not set — please update in officer mode');
+    }
   } else {
-    displayProductDetails({ name: 'Unknown Product', description: 'No record found', barcode, finalPrice: 0 });
-    showMessage('error', 'Item not available');
+    displayProductDetails({
+      name: 'Unknown Product',
+      description: 'No record found',
+      barcode,
+      finalPrice: 0
+    });
+
+    if (role === 'officer') {
+      autoFillOfficerForm(barcode);
+    } else {
+      showMessage('error', 'Item not available');
+    }
   }
 
-  // Only autoFillOfficerForm if the current role is officer
   if (role === 'officer') {
     autoFillOfficerForm(barcode);
   }
 }
 
 // ============================
-// DISPLAY PRODUCT DETAILS 
+// DISPLAY PRODUCT DETAILS
 // ============================
-
 function displayProductDetails(product) {
   document.getElementById('product-result')?.classList.remove('hidden');
-  document.getElementById('product-name').textContent = product.name || '—';
-  document.getElementById('product-barcode').textContent = product.barcode || '—';
-  document.getElementById('product-description').textContent = product.description || '—';
-  document.getElementById('final-price-display').textContent =
-    product.finalPrice && product.finalPrice > 0 ? formatCurrency(product.finalPrice) : '—';
+
+  const nameEl = document.getElementById('product-name');
+  const barcodeEl = document.getElementById('product-barcode');
+  const descEl = document.getElementById('product-description');
+  const priceEl = document.getElementById('final-price-display');
+
+  if (nameEl) nameEl.textContent = product.name || '—';
+  if (barcodeEl) barcodeEl.textContent = product.barcode || '—';
+  if (descEl) descEl.textContent = product.description || '—';
+  if (priceEl) {
+    priceEl.textContent =
+      product.finalPrice && Number(product.finalPrice) > 0
+        ? formatCurrency(Number(product.finalPrice))
+        : '—';
+  }
 }
 
 // ============================
-// CART LOGIC (for user) 
+// CART LOGIC
 // ============================
-
 function addToCart(product) {
-  if (!product.finalPrice || product.finalPrice <= 0) {
+  if (!product.finalPrice || Number(product.finalPrice) <= 0) {
     showMessage('error', 'Product has no price set');
     return;
   }
-  userCart.push(product);
+
+  userCart.push({
+    ...product,
+    finalPrice: Number(product.finalPrice)
+  });
+
   renderCart();
 }
 
@@ -268,138 +321,281 @@ function renderCart() {
   const finishBtn = document.getElementById('finish-scan-btn');
 
   if (!cartView || !cartItems || !cartTotal || !finishBtn) return;
-  
-  let total = 0;
-  let html = '<table class="cart-table" style="width:100%;color:#E0E0E0;font-size:0.9em;"><tr><th style="text-align:left;">Item</th><th style="text-align:right;">Price</th></tr>';
-  userCart.forEach(p => {
-    total += p.finalPrice || 0;
-    html += `<tr><td>${p.name}</td><td style="text-align:right;">₹${(p.finalPrice || 0).toFixed(2)}</td></tr>`;
-  });
-  html += '</table>';
-  cartItems.innerHTML = html;
-  cartTotal.textContent = `₹${total.toFixed(2)}`;
 
-  if (userCart.length > 0) finishBtn.classList.remove('hidden');
-  else finishBtn.classList.add('hidden');
+  let total = 0;
+  let html = `<table class="cart-table">
+    <tr>
+      <th style="text-align:left;">Item</th>
+      <th style="text-align:right;">Price</th>
+    </tr>`;
+
+  userCart.forEach(p => {
+    const price = Number(p.finalPrice || 0);
+    total += price;
+
+    html += `
+      <tr>
+        <td>${p.name}</td>
+        <td style="text-align:right;">${formatCurrency(price)}</td>
+      </tr>`;
+  });
+
+  html += `</table>`;
+
+  cartItems.innerHTML = html;
+  cartTotal.textContent = formatCurrency(total);
+  cartView.classList.remove('hidden');
+  finishBtn.classList.toggle('hidden', userCart.length === 0);
 }
 
 function finishUserCart() {
-  const summary = document.getElementById("cart-summary");
-  if (summary) summary.classList.remove("hidden");
-  const btn = document.getElementById("finish-scan-btn");
-  if (btn) btn.classList.add("hidden");
-  showMessage("success", "Cart total calculated ✅", 1500);
-  
-  userCart = [];
+  const summary = document.getElementById('cart-summary');
+  if (summary) summary.classList.remove('hidden');
+
+  const btn = document.getElementById('finish-scan-btn');
+  if (btn) btn.classList.add('hidden');
+
+  showMessage('success', 'Cart total calculated', 1500);
   renderCart();
 }
 
 // ============================
-// OFFICER FUNCTIONS 
+// ROLE INITIALIZATION
 // ============================
+function setupRoleFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get('role') || 'user';
 
-function addOrUpdateProduct() {
-  const barcode = document.getElementById('barcode-input')?.value.trim();
-  const name = document.getElementById('product-name-input')?.value.trim();
-  const desc = document.getElementById('product-desc-input')?.value.trim();
-  const price = parseFloat(document.getElementById('product-price-input')?.value.trim());
+  const officerPanel = document.getElementById('officer-panel');
+  const userCartView = document.getElementById('user-cart-view');
+  const greet = document.getElementById('dashboard-greeting');
 
-  if (!barcode || !name || isNaN(price) || price <= 0) {
-    showMessage('error', 'Please fill barcode, product name, and a valid price (> 0)');
-    return;
+  if (role === 'officer') {
+    if (officerPanel) officerPanel.classList.remove('hidden');
+    if (userCartView) userCartView.classList.add('hidden');
+    if (greet) greet.textContent = 'Officer Mode - Update prices for items';
+  } else {
+    if (userCartView) userCartView.classList.remove('hidden');
+    if (officerPanel) officerPanel.classList.add('hidden');
+    if (greet) greet.textContent = 'Scan items and pay quickly';
+    setupPaymentHandlers();
   }
-
-  PRODUCT_DB[barcode] = { name, description: desc, finalPrice: price };
-  localStorage.setItem("productDB", JSON.stringify(PRODUCT_DB));
-  showMessage('success', `${name} saved successfully`);
 }
 
+// ============================
+// PAYMENT SECTION
+// ============================
+function showPaymentSection() {
+  const paymentSection = document.getElementById('payment-section');
+  const cartTotalEl = document.getElementById('cart-total');
+  const paymentAmount = document.getElementById('payment-amount');
+
+  if (!paymentSection || !cartTotalEl || !paymentAmount) return;
+
+  paymentAmount.value = cartTotalEl.textContent;
+  paymentSection.classList.remove('hidden');
+}
+
+function setupPaymentHandlers() {
+  const finishBtn = document.getElementById('finish-scan-btn');
+  const methodSelect = document.getElementById('payment-method');
+  const upiSection = document.getElementById('upi-section');
+  const cardSection = document.getElementById('card-section');
+  const confirmBtn = document.getElementById('confirm-payment-btn');
+  const statusEl = document.getElementById('payment-status');
+
+  if (finishBtn) {
+    finishBtn.addEventListener('click', () => {
+      if (!userCart.length) {
+        showMessage('error', 'Cart is empty. Please scan at least one item.');
+        return;
+      }
+
+      showPaymentSection();
+      showMessage('success', 'Review your cart total and complete payment.');
+    });
+  }
+
+  if (methodSelect) {
+    methodSelect.addEventListener('change', () => {
+      const method = methodSelect.value;
+
+      if (upiSection) upiSection.classList.toggle('hidden', method !== 'upi');
+      if (cardSection) cardSection.classList.toggle('hidden', method !== 'card');
+
+      if (method === 'cash') {
+        if (upiSection) upiSection.classList.add('hidden');
+        if (cardSection) cardSection.classList.add('hidden');
+      }
+
+      if (statusEl) statusEl.textContent = '';
+    });
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      const method = methodSelect ? methodSelect.value : '';
+
+      if (!method) {
+        showMessage('error', 'Please select a payment method.');
+        return;
+      }
+
+      if (statusEl) {
+        statusEl.textContent = `Payment successful using ${method.toUpperCase()}. Thank you!`;
+      }
+
+      showMessage('success', 'Payment successful. You may now proceed to exit.');
+      userCart = [];
+      renderCart();
+    });
+  }
+}
+
+// ============================
+// OFFICER FUNCTIONS
+// ============================
 function autoFillOfficerForm(barcode) {
-  const b = document.getElementById('barcode-input');
-  const n = document.getElementById('product-name-input');
-  const d = document.getElementById('product-desc-input');
-  const p = document.getElementById('product-price-input');
-  if (!b || !n || !d) return;
+  const b = document.getElementById('officer-barcode');
+  const n = document.getElementById('officer-name');
+  const d = document.getElementById('officer-description');
+  const p = document.getElementById('officer-final-price');
+
+  if (!b || !n || !d || !p) return;
 
   b.value = barcode;
-  
+
   if (PRODUCT_DB[barcode]) {
     const prod = PRODUCT_DB[barcode];
     n.value = prod.name || '';
     d.value = prod.description || '';
     p.value = prod.finalPrice || '';
-  } 
-  else if (KNOWN_PRODUCTS[barcode]) {
+  } else if (KNOWN_PRODUCTS[barcode]) {
     const prod = KNOWN_PRODUCTS[barcode];
     n.value = prod.name || '';
     d.value = prod.description || '';
     p.value = '';
-  } 
-  else {
+  } else {
     n.value = '';
     d.value = '';
     p.value = '';
   }
 }
 
-// ============================
-// DASHBOARD SETUP 
-// ============================
+function saveOfficerProduct() {
+  const barcode = document.getElementById('officer-barcode')?.value.trim();
+  const name = document.getElementById('officer-name')?.value.trim();
+  const description = document.getElementById('officer-description')?.value.trim();
+  const finalPrice = parseFloat(document.getElementById('officer-final-price')?.value);
 
+  if (!barcode || !name || !description || isNaN(finalPrice) || finalPrice <= 0) {
+    showMessage('error', 'Please fill all officer product fields correctly.');
+    return;
+  }
+
+  PRODUCT_DB[barcode] = {
+    name,
+    description,
+    finalPrice
+  };
+
+  localStorage.setItem('productDB', JSON.stringify(PRODUCT_DB));
+  showMessage('success', 'Product saved successfully.');
+
+  displayProductDetails({
+    barcode,
+    name,
+    description,
+    finalPrice
+  });
+}
+
+// ============================
+// DASHBOARD SETUP
+// ============================
 function renderDashboard(role) {
   document.getElementById('dashboard-view')?.classList.remove('hidden');
-  document.getElementById('dashboard-greeting').textContent =
-    role === 'officer' ? 'Welcome Officer – Manage your products.' : 'Welcome! Scan your items below.';
-  
-  document.getElementById('current-role').textContent = role.toUpperCase();
+
+  const greeting = document.getElementById('dashboard-greeting');
+  const currentRoleEl = document.getElementById('current-role');
+
+  if (greeting) {
+    greeting.textContent =
+      role === 'officer'
+        ? 'Welcome Officer! Manage your products.'
+        : 'Welcome! Scan your items below.';
+  }
+
+  if (currentRoleEl) currentRoleEl.textContent = role.toUpperCase();
 
   if (role === 'officer') {
-    document.getElementById('add-product-form')?.classList.remove('hidden');
+    document.getElementById('officer-panel')?.classList.remove('hidden');
     document.getElementById('user-cart-view')?.classList.add('hidden');
     document.getElementById('finish-scan-btn')?.classList.add('hidden');
   } else {
     document.getElementById('user-cart-view')?.classList.remove('hidden');
-    document.getElementById('add-product-form')?.classList.add('hidden');
+    document.getElementById('officer-panel')?.classList.add('hidden');
   }
 
   initCamera();
 
-  const barcodeInput = document.getElementById('barcode-input');
-  if (barcodeInput) barcodeInput.addEventListener('input', e => autoFillOfficerForm(e.target.value.trim()));
-  
-  const finishBtn = document.getElementById("finish-scan-btn");
+  const barcodeInput = document.getElementById('officer-barcode');
+  if (barcodeInput) {
+    barcodeInput.addEventListener('input', e => {
+      autoFillOfficerForm(e.target.value.trim());
+    });
+  }
+
+  const finishBtn = document.getElementById('finish-scan-btn');
   if (finishBtn) finishBtn.onclick = finishUserCart;
 }
 
 // ============================
-// LOGOUT 
+// LOGOUT
 // ============================
-
 function logout() {
-  try { Quagga.stop(); } catch {}
-  window.location.href = "index.html";
+  try {
+    if (typeof Quagga !== 'undefined') Quagga.stop();
+  } catch (e) {
+    console.warn(e);
+  }
+
+  window.location.href = 'index.html';
 }
 
 // ============================
-// INIT 
+// INIT
 // ============================
-
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
+  const saveProductBtn = document.getElementById('save-product-btn');
+
   if (loginForm) loginForm.addEventListener('submit', handleLogin);
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
 
   document.getElementById('user-mode')?.addEventListener('click', () => setMode('user'));
   document.getElementById('officer-mode')?.addEventListener('click', () => setMode('officer'));
+  document.getElementById('create-account-link')?.addEventListener('click', showRegisterView);
+
+  if (saveProductBtn) saveProductBtn.addEventListener('click', saveOfficerProduct);
 
   const params = new URLSearchParams(window.location.search);
   const role = params.get('role');
-  
+
   if (role) {
+    setupRoleFromQuery();
     renderDashboard(role);
-  } 
-  else {
+  } else {
     setMode('user');
   }
 });
+
+if (typeof window !== 'undefined') {
+  window.setMode = setMode;
+  window.showLoginView = showLoginView;
+  window.showRegisterView = showRegisterView;
+  window.initCamera = initCamera;
+  window.setupRoleFromQuery = setupRoleFromQuery;
+  window.logout = logout;
+}
